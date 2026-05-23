@@ -23,6 +23,8 @@
 npm install --save-dev seo-lint-next
 ```
 
+Requires Node.js 18.18+ and works with ESLint 8.57+ or 9.
+
 ## ESLint
 
 ```js
