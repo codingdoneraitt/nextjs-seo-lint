@@ -261,3 +261,180 @@ tester.run('no-invalid-json-ld', plugin.rules['no-invalid-json-ld'] as never, {
     },
   ],
 })
+
+tester.run('no-missing-lang-attribute', plugin.rules['no-missing-lang-attribute'] as never, {
+  valid: [
+    {
+      code: 'export default function Layout({ children }) { return <html lang="en"><body>{children}</body></html> }',
+      filename: appFile('layout.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: 'export default function Layout({ children }) { return <html><body>{children}</body></html> }',
+      filename: appFile('layout.tsx'),
+      errors: [{ message: /missing a lang/ }],
+    },
+  ],
+})
+
+tester.run('no-missing-viewport', plugin.rules['no-missing-viewport'] as never, {
+  valid: [
+    {
+      code: "export const metadata = { viewport: 'width=device-width, initial-scale=1' }",
+      filename: appFile('layout.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: "export const metadata = { viewport: 'user-scalable=no' }",
+      filename: appFile('layout.tsx'),
+      errors: [{ message: /width=device-width/ }, { message: /disable user zoom/ }],
+    },
+  ],
+})
+
+tester.run('no-use-client-on-page', plugin.rules['no-use-client-on-page'] as never, {
+  valid: [
+    {
+      code: 'export default function Page() { return <main /> }',
+      filename: appFile('client-valid/page.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: "'use client'; export const metadata = { title: 'Home' }; export default function Page() { return <main /> }",
+      filename: appFile('client/page.tsx'),
+      errors: [{ message: /metadata export/ }, { message: /marked "use client"/ }],
+    },
+  ],
+})
+
+tester.run('no-missing-hreflang', plugin.rules['no-missing-hreflang'] as never, {
+  valid: [
+    {
+      code: 'export const metadata = { alternates: { languages: { "en-US": "https://acme.com/en", "x-default": "https://acme.com" } } }',
+      filename: appFile('locale/page.tsx'),
+    },
+  ],
+  invalid: [],
+})
+
+tester.run('no-generic-anchor-text', plugin.rules['no-generic-anchor-text'] as never, {
+  valid: [
+    {
+      code: 'export default function Page() { return <Link href="/pricing">View pricing plans</Link> }',
+      filename: appFile('links/page.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: 'export default function Page() { return <a href="/pricing">click here</a> }',
+      filename: appFile('links-bad/page.tsx'),
+      errors: [{ message: /Generic anchor text/ }],
+    },
+  ],
+})
+
+tester.run('no-missing-og-image-dimensions', plugin.rules['no-missing-og-image-dimensions'] as never, {
+  valid: [
+    {
+      code: "export const metadata = { openGraph: { images: [{ url: 'https://acme.com/og.png', width: 1200, height: 630, alt: 'Preview' }] } }",
+      filename: appFile('og-size/page.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: "export const metadata = { openGraph: { images: [{ url: 'https://acme.com/og.png' }] } }",
+      filename: appFile('og-size-bad/page.tsx'),
+      errors: [{ message: /width and height/ }, { message: /alt text/ }],
+    },
+  ],
+})
+
+tester.run('no-missing-breadcrumb-schema', plugin.rules['no-missing-breadcrumb-schema'] as never, {
+  valid: [
+    {
+      code: "const data = { '@type': 'BreadcrumbList', itemListElement: [] }; export default function Page() { return <JsonLd data={data} /> }",
+      filename: appFile('blog/category/post/page.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: 'export default function Page() { return <main /> }',
+      filename: appFile('blog/category/post-missing/page.tsx'),
+      errors: [{ message: /BreadcrumbList/ }],
+    },
+  ],
+})
+
+tester.run('no-title-in-pages-head', plugin.rules['no-title-in-pages-head'] as never, {
+  valid: [{ code: "export const metadata = { title: 'Home' }", filename: appFile('head-valid/page.tsx') }],
+  invalid: [
+    {
+      code: "import Head from 'next/head'; export default function Page() { return <Head><title>Home</title></Head> }",
+      filename: appFile('head/page.tsx'),
+      errors: [{ message: /next\/head/ }, { message: /metadata exports/ }],
+    },
+  ],
+})
+
+tester.run(
+  'no-dynamic-import-ssr-false-on-content',
+  plugin.rules['no-dynamic-import-ssr-false-on-content'] as never,
+  {
+    valid: [
+      { code: "const Widget = dynamic(() => import('./Chart'))", filename: appFile('dynamic/page.tsx') },
+    ],
+    invalid: [
+      {
+        code: "const Hero = dynamic(() => import('./HeroContent'), { ssr: false })",
+        filename: appFile('dynamic-bad/page.tsx'),
+        errors: [{ message: /skips server rendering/ }, { message: /primary content/ }],
+      },
+    ],
+  },
+)
+
+tester.run('no-missing-next-font', plugin.rules['no-missing-next-font'] as never, {
+  valid: [{ code: 'export default function Layout() { return <html /> }', filename: appFile('layout.tsx') }],
+  invalid: [
+    {
+      code: 'export default function Layout() { return <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter" /> }',
+      filename: appFile('layout.tsx'),
+      errors: [{ message: /next\/font/ }],
+    },
+  ],
+})
+
+tester.run('no-redirect-chain-in-next-config', plugin.rules['no-redirect-chain-in-next-config'] as never, {
+  valid: [
+    {
+      code: "export default { async redirects() { return [{ source: '/old', destination: '/new', permanent: true }] } }",
+      filename: path.join(process.cwd(), 'next.config.ts'),
+    },
+  ],
+  invalid: [
+    {
+      code: "export default { async redirects() { return [{ source: '/a', destination: '/b', permanent: true }, { source: '/b', destination: '/c', permanent: false }] } }",
+      filename: path.join(process.cwd(), 'next.config.ts'),
+      errors: [{ message: /Redirect chain/ }, { message: /Temporary redirect/ }],
+    },
+  ],
+})
+
+tester.run('no-missing-article-dates', plugin.rules['no-missing-article-dates'] as never, {
+  valid: [
+    {
+      code: "export const metadata = { openGraph: { type: 'article', publishedTime: '2026-01-01', modifiedTime: '2026-01-02' } }",
+      filename: appFile('blog/post/page.tsx'),
+    },
+  ],
+  invalid: [
+    {
+      code: "export const metadata = { openGraph: { type: 'website' } }",
+      filename: appFile('blog/post-missing/page.tsx'),
+      errors: [{ message: /publishedTime/ }, { message: /modifiedTime/ }, { message: /openGraph.type/ }],
+    },
+  ],
+})

@@ -24,6 +24,21 @@ const defaultSeverities: Record<string, 0 | 1 | 2> = {
   'no-accidental-noindex': 2,
   'no-missing-sitemap': 1,
   'no-invalid-json-ld': 2,
+  'no-missing-lang-attribute': 2,
+  'no-missing-viewport': 2,
+  'no-use-client-on-page': 1,
+  'no-missing-hreflang': 1,
+  'no-generic-anchor-text': 1,
+  'no-missing-404-page': 1,
+  'no-missing-og-image-dimensions': 1,
+  'no-blocking-next-static': 2,
+  'no-missing-breadcrumb-schema': 1,
+  'no-title-in-pages-head': 2,
+  'no-dynamic-import-ssr-false-on-content': 1,
+  'no-missing-next-font': 1,
+  'no-redirect-chain-in-next-config': 1,
+  'no-missing-article-dates': 1,
+  'no-missing-error-boundary-metadata': 1,
 }
 
 async function main(): Promise<void> {
@@ -37,11 +52,17 @@ async function main(): Promise<void> {
     return
   }
 
-  const files = await fg(['**/*.{ts,tsx,js,jsx,mts,mjs}'], {
+  const appFiles = await fg(['**/*.{ts,tsx,js,jsx,mts,mjs}'], {
     cwd: appDir,
     absolute: true,
     ignore: ['**/node_modules/**', '**/.next/**'],
   })
+  const configFiles = await fg(['next.config.{ts,js,mjs,cjs,mts,cts}'], {
+    cwd,
+    absolute: true,
+    ignore: ['**/node_modules/**', '**/.next/**'],
+  })
+  const files = [...appFiles, ...configFiles]
 
   const linter = createLinter()
   const rules = Object.fromEntries(
@@ -53,19 +74,25 @@ async function main(): Promise<void> {
 
   const results = files.map((filePath) => {
     const text = fs.readFileSync(filePath, 'utf8')
-    const messages = linter.verify(
-      text,
-      {
-        parser: '@typescript-eslint/parser',
-        parserOptions: {
-          ecmaVersion: 'latest',
-          sourceType: 'module',
-          ecmaFeatures: { jsx: true },
-        },
-        rules,
-      } as never,
-      { filename: filePath },
-    )
+    const messages = linter
+      .verify(
+        text,
+        {
+          parser: '@typescript-eslint/parser',
+          parserOptions: {
+            ecmaVersion: 'latest',
+            sourceType: 'module',
+            ecmaFeatures: { jsx: true },
+          },
+          linterOptions: {
+            noInlineConfig: true,
+            reportUnusedDisableDirectives: 'off',
+          },
+          rules,
+        } as never,
+        { filename: filePath },
+      )
+      .filter((message) => message.ruleId || !/noInlineConfig/.test(message.message))
     return { filePath, messages }
   })
 

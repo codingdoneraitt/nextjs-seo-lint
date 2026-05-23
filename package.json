@@ -50,7 +50,7 @@
     "prepare": "node -e \"const fs=require('node:fs'); const cp=require('node:child_process'); if (fs.existsSync('.git')) cp.execSync('husky', {stdio:'inherit'})\"",
     "prepack": "npm run check",
     "release": "npm run check && changeset publish",
-    "test": "vitest run",
+    "test": "vitest run tests/*.test.ts",
     "types:package": "node scripts/check-package.mjs",
     "typecheck": "tsc --noEmit",
     "version": "changeset version && npm install --package-lock-only",

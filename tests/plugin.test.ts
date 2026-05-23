@@ -7,7 +7,7 @@ import plugin from '../src/eslint'
 
 describe('seo-lint-next plugin', () => {
   it('exports all v1 rules and a flat recommended config', () => {
-    expect(Object.keys(plugin.rules)).toHaveLength(10)
+    expect(Object.keys(plugin.rules)).toHaveLength(25)
     expect(plugin.configs.recommended[0].rules['seo-lint-next/no-missing-title']).toBe('error')
   })
 

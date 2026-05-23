@@ -7,7 +7,7 @@ export const metadata = {
     title: 'Home',
     description: 'Acme metadata checks for Next.js App Router projects before production.',
     type: 'website',
-    images: [{ url: 'https://acme.com/og.png', width: 1200, height: 630 }],
+    images: [{ url: 'https://acme.com/og.png', width: 1200, height: 630, alt: 'Acme SEO lint preview' }],
   },
   twitter: {
     card: 'summary_large_image',

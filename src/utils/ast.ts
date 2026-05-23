@@ -68,6 +68,20 @@ export function getStaticString(node: unknown): string | undefined {
   return undefined
 }
 
+export function getStaticNumber(node: unknown): number | undefined {
+  const typed = node as AstNode | undefined
+  if (!typed) return undefined
+  if (typed.type === 'Literal' && typeof typed.value === 'number') return typed.value
+  return undefined
+}
+
+export function getStaticBoolean(node: unknown): boolean | undefined {
+  const typed = node as AstNode | undefined
+  if (!typed) return undefined
+  if (typed.type === 'Literal' && typeof typed.value === 'boolean') return typed.value
+  return undefined
+}
+
 export function isNonEmptyStringNode(node: unknown): boolean {
   const value = getStaticString(node)
   return typeof value === 'string' && value.trim().length > 0
@@ -93,6 +107,45 @@ export function findMetadataObject(program: AstNode): AstNode | undefined {
     }
   }
   return undefined
+}
+
+export function findNamedExportInit(program: AstNode, name: string): AstNode | undefined {
+  for (const statement of (program.body as AstNode[] | undefined) ?? []) {
+    if (statement.type !== 'ExportNamedDeclaration') continue
+    const declaration = statement.declaration as AstNode | undefined
+    if (!declaration || declaration.type !== 'VariableDeclaration') continue
+    for (const item of (declaration.declarations as AstNode[] | undefined) ?? []) {
+      if (getNodeName(item.id) === name) return item.init as AstNode | undefined
+    }
+  }
+  return undefined
+}
+
+export function hasNamedExport(program: AstNode, name: string): boolean {
+  if (findNamedExportInit(program, name)) return true
+  return ((program.body as AstNode[] | undefined) ?? []).some((statement) => {
+    if (statement.type !== 'ExportNamedDeclaration') return false
+    const declaration = statement.declaration as AstNode | undefined
+    if (declaration?.type === 'FunctionDeclaration' && getNodeName(declaration.id) === name) return true
+    return ((statement.specifiers as AstNode[] | undefined) ?? []).some(
+      (specifier) => getNodeName(specifier.exported) === name,
+    )
+  })
+}
+
+export function hasDirective(program: AstNode, directive: string): boolean {
+  const first = ((program.body as AstNode[] | undefined) ?? [])[0]
+  const expression = first?.expression as AstNode | undefined
+  return (
+    first?.type === 'ExpressionStatement' && expression?.type === 'Literal' && expression.value === directive
+  )
+}
+
+export function hasImportFrom(program: AstNode, source: string): boolean {
+  return ((program.body as AstNode[] | undefined) ?? []).some(
+    (statement) =>
+      statement.type === 'ImportDeclaration' && (statement.source as AstNode | undefined)?.value === source,
+  )
 }
 
 export function findGenerateMetadataReturns(program: AstNode): AstNode[] {
@@ -198,6 +251,37 @@ export function jsxAttributeString(node: AstNode, name: string): string | undefi
   if (value.type === 'Literal') return String(value.value)
   if (value.type === 'JSXExpressionContainer') return getStaticString(value.expression)
   return undefined
+}
+
+export function hasJsxAttribute(node: AstNode, name: string): boolean {
+  return Boolean(jsxAttribute(node, name))
+}
+
+export function jsxChildText(node: AstNode): string {
+  return ((node.children as AstNode[] | undefined) ?? [])
+    .map((child) => {
+      if (child.type === 'JSXText') return String(child.value ?? '')
+      if (child.type === 'Literal') return String(child.value ?? '')
+      if (child.type === 'JSXExpressionContainer') return getStaticString(child.expression) ?? ''
+      if (child.type === 'JSXElement') return jsxChildText(child)
+      return ''
+    })
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export function hasChildElement(node: AstNode, name: string): boolean {
+  let found = false
+  walk(node, (child) => {
+    if (child.type === 'JSXOpeningElement' && getNodeName(child.name) === name) found = true
+  })
+  return found
+}
+
+export function isValidBcp47(value: string): boolean {
+  if (!value || value === 'und') return false
+  return /^[a-z]{2,3}(?:-[A-Z][a-z]{3})?(?:-(?:[A-Z]{2}|\d{3}))?$/.test(value) || value === 'x-default'
 }
 
 export function routeFromFilename(filename: string): string {

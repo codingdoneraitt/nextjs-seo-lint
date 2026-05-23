@@ -28,6 +28,11 @@ export function isRootLayoutFile(filename: string): boolean {
   return /(^|\/)(src\/)?app\/layout\.[cm]?[jt]sx?$/.test(normalized)
 }
 
+export function isAppRouterFile(filename: string): boolean {
+  const normalized = filename.split(path.sep).join('/')
+  return /(^|\/)(src\/)?app\//.test(normalized)
+}
+
 export function isDynamicRoute(filename: string): boolean {
   return /\[[^/]+\]/.test(filename)
 }
@@ -66,6 +71,28 @@ export function hasMetadataBase(root = findProjectRoot()): boolean {
 
 export function routeSegmentDir(filename: string): string {
   return path.dirname(filename)
+}
+
+export function routeDepth(filename: string): number {
+  return routeFromFilename(filename)
+    .split('/')
+    .filter((segment) => segment && !segment.startsWith('[') && !segment.startsWith('(')).length
+}
+
+export function hasLocaleRouting(root = findProjectRoot()): boolean {
+  const appDir = findAppDir(root)
+  if (!appDir) return false
+  return fs
+    .readdirSync(appDir, { recursive: true, withFileTypes: true })
+    .some((entry) => entry.isDirectory() && /^\[(lang|locale)\]$/.test(entry.name))
+}
+
+export function hasDynamicRoutes(root = findProjectRoot()): boolean {
+  const appDir = findAppDir(root)
+  if (!appDir) return false
+  return fs
+    .readdirSync(appDir, { recursive: true, withFileTypes: true })
+    .some((entry) => entry.isDirectory() && /^\[[^/]+\]$/.test(entry.name))
 }
 
 export function hasOpenGraphImageRoute(filename: string): boolean {
