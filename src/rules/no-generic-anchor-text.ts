@@ -1,4 +1,11 @@
-import { getNodeName, hasChildElement, hasJsxAttribute, jsxAttributeString, jsxChildText } from '../utils/ast'
+import {
+  type AstNode,
+  getNodeName,
+  hasChildElement,
+  hasJsxAttribute,
+  jsxAttributeString,
+  jsxChildText,
+} from '../utils/ast'
 import { createRule, report } from '../utils/rule'
 
 const generic = new Set([
@@ -25,7 +32,9 @@ export const noGenericAnchorText = createRule(
       if (name !== 'a' && name !== 'Link') return
       const text = jsxChildText(node as never).toLowerCase()
       const label = jsxAttributeString(node.openingElement, 'aria-label')
+      const hasDynamicText = hasDynamicTextContent(node as never)
       if (!text && !label) {
+        if (hasDynamicText) return
         const hasImage = hasChildElement(node as never, 'img') || hasChildElement(node as never, 'Image')
         report(
           context,
@@ -56,3 +65,14 @@ export const noGenericAnchorText = createRule(
   }),
   'suggestion',
 )
+
+function hasDynamicTextContent(node: AstNode): boolean {
+  return ((node.children as AstNode[] | undefined) ?? []).some((child) => {
+    if (child.type === 'JSXExpressionContainer') {
+      const expression = child.expression as AstNode | undefined
+      return expression?.type !== 'JSXEmptyExpression'
+    }
+    if (child.type === 'JSXElement') return hasDynamicTextContent(child)
+    return false
+  })
+}
