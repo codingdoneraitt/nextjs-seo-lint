@@ -1,0 +1,28 @@
+name: Bug report
+description: Report an incorrect diagnostic, missed diagnostic, or CLI/plugin failure.
+title: '[bug]: '
+labels: ['bug']
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include the relevant file path and code snippet.
+      render: tsx
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Node, ESLint, Next.js, and seo-lint-next versions.
+      placeholder: Node 22, ESLint 9, Next 15, seo-lint-next 0.1.0
+    validations:
+      required: true

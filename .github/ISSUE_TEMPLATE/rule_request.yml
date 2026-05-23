@@ -1,0 +1,29 @@
+name: Rule request
+description: Suggest a new SEO rule or a rule improvement.
+title: '[rule]: '
+labels: ['rule request']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: SEO problem
+      description: What production mistake should this catch?
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Bad and good examples
+      render: tsx
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Suggested default severity
+      options:
+        - error
+        - warn
+        - off
+    validations:
+      required: true

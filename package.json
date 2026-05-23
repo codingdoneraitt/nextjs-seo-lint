@@ -1,0 +1,94 @@
+{
+  "name": "seo-lint-next",
+  "version": "0.1.0",
+  "description": "Build-time, App Router-aware SEO linter for Next.js.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "seo-lint-next": "./dist/cli.cjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./eslint": {
+      "types": "./dist/eslint.d.ts",
+      "import": "./dist/eslint.js",
+      "require": "./dist/eslint.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "assets",
+    "docs",
+    "examples",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "changeset": "changeset",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm test && npm run package:check && npm run audit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "package:check": "node scripts/check-package.mjs",
+    "prepare": "node -e \"const fs=require('node:fs'); const cp=require('node:child_process'); if (fs.existsSync('.git')) cp.execSync('husky', {stdio:'inherit'})\"",
+    "prepack": "npm run check",
+    "release": "npm run check && changeset publish",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "version": "changeset version && npm install --package-lock-only",
+    "audit": "npm audit --audit-level=moderate"
+  },
+  "keywords": [
+    "nextjs",
+    "next",
+    "seo",
+    "eslint",
+    "eslint-plugin",
+    "metadata",
+    "app-router"
+  ],
+  "peerDependencies": {
+    "eslint": ">=8.57.0 <10"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^8.46.3",
+    "cheerio": "^1.0.0",
+    "fast-glob": "^3.3.2",
+    "image-size": "^1.1.1"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@changesets/cli": "^2.31.0",
+    "@eslint/js": "^9.3.0",
+    "@types/eslint": "^8.56.10",
+    "@types/node": "^20.12.12",
+    "eslint": "^9.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.8.3",
+    "publint": "^0.3.21",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.7"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "eslint --fix"
+    ]
+  }
+}
