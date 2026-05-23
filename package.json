@@ -70,7 +70,6 @@
   },
   "dependencies": {
     "@typescript-eslint/parser": "^8.46.3",
-    "cheerio": "^1.0.0",
     "fast-glob": "^3.3.2",
     "image-size": "^1.1.1"
   },
