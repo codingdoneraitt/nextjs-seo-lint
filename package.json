@@ -5,8 +5,16 @@
   "type": "module",
   "license": "MIT",
   "bin": {
-    "seo-lint-next": "./dist/cli.cjs"
+    "seo-lint-next": "dist/cli.cjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codingdoneraitt/nextjs-seo-lint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codingdoneraitt/nextjs-seo-lint/issues"
+  },
+  "homepage": "https://github.com/codingdoneraitt/nextjs-seo-lint#readme",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
