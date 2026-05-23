@@ -1,6 +1,6 @@
 {
   "name": "seo-lint-next",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build-time, App Router-aware SEO linter for Next.js.",
   "type": "module",
   "license": "MIT",
