@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+### Patch Changes
+
+- 1e01b27: Treat private routes nested under locale segments or route groups as private, and skip hreflang checks for those private routes.
+
 ## 0.2.1
 
 ### Patch Changes
