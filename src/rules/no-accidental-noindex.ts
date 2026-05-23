@@ -1,6 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { getObjectProperty, getPathProperty, getStaticString, metadataSources, walk } from '../utils/ast'
+import {
+  getObjectProperty,
+  getPathProperty,
+  getStaticString,
+  metadataSources,
+  sourceHasNoindex,
+  walk,
+} from '../utils/ast'
 import { findAppDir, findProjectRoot, isPageFile, routeIsPrivate } from '../utils/files'
 import { createRule, report } from '../utils/rule'
 
@@ -16,19 +23,22 @@ export const noAccidentalNoindex = createRule(
       const privateRoutes = options.privateRoutes
 
       if (isPageFile(filename) && !routeIsPrivate(filename, privateRoutes)) {
-        for (const source of metadataSources(program as never)) {
-          const robots = getPathProperty(source, ['robots'])
-          if (!robots) continue
-          if (getStaticString(robots.value)?.toLowerCase().includes('noindex')) {
-            report(
-              context,
-              robots.node as never,
-              'Public page sets robots: "noindex"; this can remove the page from search indexes.',
-            )
-          }
-          const index = getObjectProperty(robots.value, 'index')
-          if (index?.value.type === 'Literal' && index.value.value === false) {
-            report(context, index.node as never, 'Public page sets robots.index to false.')
+        const sources = metadataSources(program as never)
+        if (sources.length <= 1 || sources.every(sourceHasNoindex)) {
+          for (const source of sources) {
+            const robots = getPathProperty(source, ['robots'])
+            if (!robots) continue
+            if (getStaticString(robots.value)?.toLowerCase().includes('noindex')) {
+              report(
+                context,
+                robots.node as never,
+                'Public page sets robots: "noindex"; this can remove the page from search indexes.',
+              )
+            }
+            const index = getObjectProperty(robots.value, 'index')
+            if (index?.value.type === 'Literal' && index.value.value === false) {
+              report(context, index.node as never, 'Public page sets robots.index to false.')
+            }
           }
         }
       }
@@ -70,7 +80,7 @@ export const noAccidentalNoindex = createRule(
         .find(fs.existsSync)
       if (nextConfig) {
         const text = fs.readFileSync(nextConfig, 'utf8')
-        if (/X-Robots-Tag/i.test(text) && /noindex/i.test(text)) {
+        if (/X-Robots-Tag/i.test(text) && /noindex/i.test(text) && !onlyNoindexesMetadataAssets(text)) {
           report(
             context,
             program,
@@ -81,3 +91,19 @@ export const noAccidentalNoindex = createRule(
     },
   }),
 )
+
+function onlyNoindexesMetadataAssets(text: string): boolean {
+  const sources: string[] = []
+  let currentSource: string | undefined
+  for (const line of text.split(/\r?\n/)) {
+    const source = line.match(/source\s*:\s*['"`]([^'"`]+)['"`]/)
+    if (source) currentSource = source[1]
+    if (/X-Robots-Tag/i.test(line) && /noindex/i.test(line) && currentSource) sources.push(currentSource)
+  }
+  return (
+    sources.length > 0 &&
+    sources.every((source) =>
+      /(^|\/|:)twitter-image|(^|\/|:)opengraph-image|(^|\/|:)icon|favicon|apple-icon/i.test(source),
+    )
+  )
+}

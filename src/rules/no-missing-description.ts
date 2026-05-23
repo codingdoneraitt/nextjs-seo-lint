@@ -1,5 +1,5 @@
-import { getPathProperty, getStaticString, metadataSources } from '../utils/ast'
-import { isLayoutFile, isPageFile, routeFromFilename } from '../utils/files'
+import { getPathProperty, getStaticString, metadataHasNoindex, metadataSources } from '../utils/ast'
+import { isPageFile, isRootLayoutFile, routeFromFilename, routeIsPrivate } from '../utils/files'
 import { createRule, report } from '../utils/rule'
 
 const seenDescriptions = new Map<string, string>()
@@ -10,7 +10,13 @@ export const noMissingDescription = createRule(
   (context) => ({
     'Program:exit'(program) {
       const filename = context.getFilename()
-      if (!isPageFile(filename) && !isLayoutFile(filename)) return
+      if (!isPageFile(filename) && !isRootLayoutFile(filename)) return
+      const privateRouteOptions = (context.options[0] ?? {}) as { privateRoutes?: string[] }
+      if (
+        isPageFile(filename) &&
+        (routeIsPrivate(filename, privateRouteOptions.privateRoutes) || metadataHasNoindex(program as never))
+      )
+        return
 
       const option = (context.options[0] ?? {}) as { descriptionLength?: { min?: number; max?: number } }
       const min = option.descriptionLength?.min ?? 120
@@ -27,7 +33,9 @@ export const noMissingDescription = createRule(
       }
 
       const value = getStaticString(description.value)
-      if (typeof value !== 'string' || value.trim().length === 0) {
+      if (typeof value !== 'string') return
+
+      if (value.trim().length === 0) {
         report(context, description.node as never, 'metadata.description must not be empty or whitespace.')
         return
       }

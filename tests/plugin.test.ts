@@ -57,8 +57,8 @@ describe('seo-lint-next plugin', () => {
       output = String((error as { stdout?: string }).stdout ?? '')
     }
 
-    expect(output).toContain('seo-lint-next/no-missing-title')
     expect(output).toContain('seo-lint-next/no-accidental-noindex')
+    expect(output).toContain('seo-lint-next/no-img-missing-alt')
   })
 
   it('runs the built CLI against a valid App Router fixture', () => {

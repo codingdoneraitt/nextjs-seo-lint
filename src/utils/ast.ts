@@ -73,6 +73,11 @@ export function isNonEmptyStringNode(node: unknown): boolean {
   return typeof value === 'string' && value.trim().length > 0
 }
 
+export function isEmptyStaticString(node: unknown): boolean {
+  const value = getStaticString(node)
+  return typeof value === 'string' && value.trim().length === 0
+}
+
 export function findMetadataObject(program: AstNode): AstNode | undefined {
   for (const statement of (program.body as AstNode[] | undefined) ?? []) {
     if (statement.type !== 'ExportNamedDeclaration') continue
@@ -119,6 +124,21 @@ export function findGenerateMetadataReturns(program: AstNode): AstNode[] {
 export function metadataSources(program: AstNode): AstNode[] {
   const staticMetadata = findMetadataObject(program)
   return [staticMetadata, ...findGenerateMetadataReturns(program)].filter(Boolean) as AstNode[]
+}
+
+export function metadataHasNoindex(program: AstNode): boolean {
+  const sources = metadataSources(program)
+  return sources.length > 0 && sources.every(sourceHasNoindex)
+}
+
+export function sourceHasNoindex(source: AstNode): boolean {
+  const robots = getPathProperty(source, ['robots'])
+  if (!robots) return false
+
+  if (getStaticString(robots.value)?.toLowerCase().includes('noindex')) return true
+
+  const index = getObjectProperty(robots.value, 'index')
+  return index?.value.type === 'Literal' && index.value.value === false
 }
 
 export function hasNullishFallback(node: unknown): boolean {

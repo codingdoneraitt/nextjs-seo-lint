@@ -44,15 +44,20 @@ tester.run('no-missing-title', plugin.rules['no-missing-title'] as never, {
       code: "export const metadata = { title: 'Home' }",
       filename: appFile('page.tsx'),
     },
+    {
+      code: 'export default function Layout({ children }) { return children }',
+      filename: appFile('pricing/layout.tsx'),
+    },
+    {
+      code: 'export async function generateMetadata() { return { title: product.title } }',
+      filename: appFile('dynamic-title/page.tsx'),
+    },
   ],
   invalid: [
     {
       code: "export const metadata = { title: '' }",
       filename: appFile('empty-title/page.tsx'),
-      errors: [
-        { message: 'metadata.title must not be empty or whitespace.' },
-        { message: 'Dynamic metadata.title should include a non-empty fallback with ?? "Fallback title".' },
-      ],
+      errors: [{ message: 'metadata.title must not be empty or whitespace.' }],
     },
   ],
 })
@@ -82,6 +87,14 @@ tester.run('no-missing-description', plugin.rules['no-missing-description'] as n
       }`,
       filename: appFile('description/page.tsx'),
     },
+    {
+      code: 'export async function generateMetadata() { return { description: `${post.title} certification practice questions and study guidance.` } }',
+      filename: appFile('description-dynamic/page.tsx'),
+    },
+    {
+      code: 'export default function Layout({ children }) { return children }',
+      filename: appFile('pricing/layout.tsx'),
+    },
   ],
   invalid: [
     {
@@ -97,6 +110,10 @@ tester.run('no-missing-canonical', plugin.rules['no-missing-canonical'] as never
     {
       code: "export const metadata = { alternates: { canonical: 'https://acme.com/about' } }",
       filename: appFile('about/page.tsx'),
+    },
+    {
+      code: 'export const metadata = { robots: { index: false } }',
+      filename: appFile('quiz/[id]/page.tsx'),
     },
   ],
   invalid: [
@@ -122,6 +139,10 @@ tester.run('no-missing-og-tags', plugin.rules['no-missing-og-tags'] as never, {
       }`,
       filename: appFile('og-valid/page.tsx'),
     },
+    {
+      code: 'export const metadata = { robots: { index: false } }',
+      filename: appFile('dashboard/page.tsx'),
+    },
   ],
   invalid: [
     {
@@ -142,6 +163,14 @@ tester.run('no-broken-heading-hierarchy', plugin.rules['no-broken-heading-hierar
     {
       code: 'export default function Page() { return <main><h1>Title</h1><h2>Details</h2></main> }',
       filename: appFile('headings-valid/page.tsx'),
+    },
+    {
+      code: 'export default function Page() { return <PricingClient /> }',
+      filename: appFile('pricing/page.tsx'),
+    },
+    {
+      code: 'export const metadata = { robots: { index: false } }; export default function Page() { return <main><h1>A</h1><h1>B</h1></main> }',
+      filename: appFile('quiz/page.tsx'),
     },
   ],
   invalid: [
@@ -175,6 +204,17 @@ tester.run('no-accidental-noindex', plugin.rules['no-accidental-noindex'] as nev
       code: 'export const metadata = { robots: { index: true, follow: true } }',
       filename: appFile('indexable/page.tsx'),
     },
+    {
+      code: 'export const metadata = { robots: { index: false, follow: false } }',
+      filename: appFile('sign-in/[[...sign-in]]/page.tsx'),
+    },
+    {
+      code: `export async function generateMetadata({ searchParams }) {
+        if (searchParams.provider) return { robots: { index: false, follow: true } }
+        return { title: 'Exams', description: 'Browse certification exams.', alternates: { canonical: '/exams' } }
+      }`,
+      filename: appFile('exams/page.tsx'),
+    },
   ],
   invalid: [
     {
@@ -203,6 +243,12 @@ tester.run('no-invalid-json-ld', plugin.rules['no-invalid-json-ld'] as never, {
         return <script type="application/ld+json">{'{ "@context": "https://schema.org", "@type": "Article", "headline": "Post", "author": "Ada", "datePublished": "2026-01-01" }'}</script>
       }`,
       filename: appFile('blog/jsonld-valid/page.tsx'),
+    },
+    {
+      code: `export default function Page() {
+        return <JsonLd data={{ '@context': 'https://schema.org', '@type': 'Blog', name: 'Blog' }} />
+      }`,
+      filename: appFile('blog/page.tsx'),
     },
   ],
   invalid: [

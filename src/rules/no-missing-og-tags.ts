@@ -1,8 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { imageSize } from 'image-size'
-import { getObjectProperty, getPathProperty, getStaticString, metadataSources } from '../utils/ast'
-import { hasMetadataBase, hasOpenGraphImageRoute, isPageFile } from '../utils/files'
+import {
+  getObjectProperty,
+  getPathProperty,
+  getStaticString,
+  metadataHasNoindex,
+  metadataSources,
+} from '../utils/ast'
+import { hasMetadataBase, hasOpenGraphImageRoute, isPageFile, routeIsPrivate } from '../utils/files'
 import { createRule, report } from '../utils/rule'
 
 export const noMissingOgTags = createRule(
@@ -12,6 +18,8 @@ export const noMissingOgTags = createRule(
     'Program:exit'(program) {
       const filename = context.getFilename()
       if (!isPageFile(filename)) return
+      const options = (context.options[0] ?? {}) as { privateRoutes?: string[] }
+      if (routeIsPrivate(filename, options.privateRoutes) || metadataHasNoindex(program as never)) return
 
       const source = metadataSources(program as never)[0]
       if (!source) return

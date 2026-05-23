@@ -34,7 +34,19 @@ export function isDynamicRoute(filename: string): boolean {
 
 export function routeIsPrivate(
   filename: string,
-  privateRoutes = ['/admin', '/api', '/auth', '/private'],
+  privateRoutes = [
+    '/admin',
+    '/api',
+    '/auth',
+    '/dashboard',
+    '/login',
+    '/private',
+    '/quiz',
+    '/register',
+    '/settings',
+    '/sign-in',
+    '/sign-up',
+  ],
 ): boolean {
   const normalized = filename.split(path.sep).join('/')
   return privateRoutes.some(

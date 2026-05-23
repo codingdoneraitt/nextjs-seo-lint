@@ -1,5 +1,11 @@
-import { getPathProperty, getStaticString, hasNullishFallback, metadataSources } from '../utils/ast'
-import { isLayoutFile, isPageFile, routeFromFilename } from '../utils/files'
+import {
+  getPathProperty,
+  getStaticString,
+  isEmptyStaticString,
+  metadataHasNoindex,
+  metadataSources,
+} from '../utils/ast'
+import { isPageFile, isRootLayoutFile, routeFromFilename, routeIsPrivate } from '../utils/files'
 import { createRule, report } from '../utils/rule'
 
 const seenTitles = new Map<string, string>()
@@ -10,7 +16,13 @@ export const noMissingTitle = createRule(
   (context) => ({
     'Program:exit'(program) {
       const filename = context.getFilename()
-      if (!isPageFile(filename) && !isLayoutFile(filename)) return
+      if (!isPageFile(filename) && !isRootLayoutFile(filename)) return
+      const options = (context.options[0] ?? {}) as { privateRoutes?: string[] }
+      if (
+        isPageFile(filename) &&
+        (routeIsPrivate(filename, options.privateRoutes) || metadataHasNoindex(program as never))
+      )
+        return
 
       const sources = metadataSources(program as never)
       const title = sources.map((source) => getPathProperty(source, ['title'])).find(Boolean)
@@ -20,7 +32,7 @@ export const noMissingTitle = createRule(
         return
       }
 
-      if (title.value.type === 'Literal' && String(title.value.value ?? '').trim().length === 0) {
+      if (isEmptyStaticString(title.value)) {
         report(context, title.node as never, 'metadata.title must not be empty or whitespace.')
       }
 
@@ -39,23 +51,11 @@ export const noMissingTitle = createRule(
         }
       }
 
-      if (isLayoutFile(filename) && !getPathProperty(title.value, ['template'])) {
+      if (isRootLayoutFile(filename) && !getPathProperty(title.value, ['template'])) {
         report(
           context,
           title.node as never,
           'Root/layout metadata.title should define a title.template such as "%s | Brand".',
-        )
-      }
-
-      if (
-        title.value.type !== 'ObjectExpression' &&
-        !getStaticString(title.value) &&
-        !hasNullishFallback(title.value)
-      ) {
-        report(
-          context,
-          title.node as never,
-          'Dynamic metadata.title should include a non-empty fallback with ?? "Fallback title".',
         )
       }
     },

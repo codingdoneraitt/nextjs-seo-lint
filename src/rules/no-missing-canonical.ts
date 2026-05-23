@@ -1,5 +1,11 @@
-import { getPathProperty, getStaticString, hasDynamicInterpolation, metadataSources } from '../utils/ast'
-import { hasMetadataBase, isDynamicRoute, isPageFile } from '../utils/files'
+import {
+  getPathProperty,
+  getStaticString,
+  hasDynamicInterpolation,
+  metadataHasNoindex,
+  metadataSources,
+} from '../utils/ast'
+import { hasMetadataBase, isDynamicRoute, isPageFile, routeIsPrivate } from '../utils/files'
 import { createRule, report } from '../utils/rule'
 
 export const noMissingCanonical = createRule(
@@ -9,6 +15,8 @@ export const noMissingCanonical = createRule(
     'Program:exit'(program) {
       const filename = context.getFilename()
       if (!isPageFile(filename)) return
+      const options = (context.options[0] ?? {}) as { privateRoutes?: string[] }
+      if (routeIsPrivate(filename, options.privateRoutes) || metadataHasNoindex(program as never)) return
 
       const sources = metadataSources(program as never)
       const canonical = sources

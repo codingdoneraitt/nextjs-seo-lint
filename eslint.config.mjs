@@ -11,7 +11,7 @@ const nodeGlobals = {
 export default [
   js.configs.recommended,
   {
-    ignores: ['dist/**', 'coverage/**'],
+    ignores: ['dist/**', 'coverage/**', 'project-examples/**'],
   },
   {
     files: ['**/*.{js,mjs,cjs}'],

@@ -5,7 +5,10 @@ import { createRule, report } from '../utils/rule'
 const requiredFields: Record<string, string[]> = {
   Article: ['headline', 'author', 'datePublished'],
   BlogPosting: ['headline', 'author', 'datePublished'],
+  Blog: ['name'],
+  CollectionPage: ['name'],
   Product: ['name', 'offers'],
+  Quiz: ['name'],
   FAQPage: ['mainEntity'],
   BreadcrumbList: ['itemListElement'],
   Organization: ['name', 'url'],
@@ -24,6 +27,11 @@ export const noInvalidJsonLd = createRule(
     return {
       JSXElement(node: any) {
         const opening = node.openingElement
+        if (getNodeName(opening?.name) === 'JsonLd') {
+          scriptCount += 1
+          return
+        }
+
         if (getNodeName(opening?.name) !== 'script') return
         if (jsxAttributeString(opening, 'type') !== 'application/ld+json') return
         scriptCount += 1
