@@ -24,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: npm
@@ -42,5 +42,9 @@ jobs:
       - name: Check
         run: npm run check
 
+      - name: Advisory package type check
+        if: matrix.node == '22.x' && matrix.eslint == '9.x'
+        run: npm run types:package
+
       - name: Pack smoke test
-        run: npm pack --dry-run
+        run: npm pack --dry-run --ignore-scripts

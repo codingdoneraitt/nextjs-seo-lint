@@ -65,7 +65,7 @@ export const noMissingOgTags = createRule(
           if (url?.startsWith('/')) {
             const publicFile = path.join(process.cwd(), 'public', url)
             if (fs.existsSync(publicFile)) {
-              const size = imageSize(publicFile)
+              const size = imageSize(fs.readFileSync(publicFile))
               if ((size.width ?? 0) < 800 || (size.height ?? 0) < 418) {
                 report(context, images.node as never, `Open Graph image file ${url} is smaller than 800x418.`)
               }

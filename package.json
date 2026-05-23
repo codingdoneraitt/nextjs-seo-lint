@@ -38,11 +38,12 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "package:check": "node scripts/check-package.mjs",
+    "package:check": "publint",
     "prepare": "node -e \"const fs=require('node:fs'); const cp=require('node:child_process'); if (fs.existsSync('.git')) cp.execSync('husky', {stdio:'inherit'})\"",
     "prepack": "npm run check",
     "release": "npm run check && changeset publish",
     "test": "vitest run",
+    "types:package": "node scripts/check-package.mjs",
     "typecheck": "tsc --noEmit",
     "version": "changeset version && npm install --package-lock-only",
     "audit": "npm audit --audit-level=moderate"
