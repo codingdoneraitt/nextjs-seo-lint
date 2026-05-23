@@ -30,22 +30,26 @@ jobs:
         run: npm run check
 
       - name: Version packages on main
-        id: version
         run: |
-          npm run version
-          if [ -n "$(git status --porcelain)" ]; then
+          if ls .changeset/*.md >/dev/null 2>&1; then
+            npm run version
+          fi
+          if [ -n "$(git status --porcelain -- package.json package-lock.json CHANGELOG.md .changeset)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add package.json package-lock.json CHANGELOG.md .changeset
             git commit -m "Version packages [skip ci]"
             git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish to npm
-        if: steps.version.outputs.changed == 'true'
-        run: npm run release
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PUBLISHED_VERSION=$(npm view seo-lint-next version 2>/dev/null || true)
+          if [ "$PACKAGE_VERSION" = "$PUBLISHED_VERSION" ]; then
+            echo "seo-lint-next@$PACKAGE_VERSION is already published"
+            exit 0
+          fi
+          npm publish --provenance --access public
         env:
           NPM_CONFIG_PROVENANCE: true
