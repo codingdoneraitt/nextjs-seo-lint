@@ -5,7 +5,7 @@ import {
   metadataSources,
   objectProperties,
 } from '../utils/ast'
-import { hasLocaleRouting, isPageFile } from '../utils/files'
+import { hasLocaleRouting, isPageFile, routeIsPrivate } from '../utils/files'
 import { createRule, report } from '../utils/rule'
 
 export const noMissingHreflang = createRule(
@@ -13,7 +13,10 @@ export const noMissingHreflang = createRule(
   'require hreflang alternates for locale-routed apps',
   (context) => ({
     'Program:exit'(program) {
-      if (!isPageFile(context.getFilename()) || !hasLocaleRouting()) return
+      const filename = context.getFilename()
+      if (!isPageFile(filename) || !hasLocaleRouting()) return
+      const options = (context.options[0] ?? {}) as { privateRoutes?: string[] }
+      if (routeIsPrivate(filename, options.privateRoutes)) return
 
       const languages = metadataSources(program as never)
         .map((source) => getPathProperty(source, ['alternates', 'languages']))

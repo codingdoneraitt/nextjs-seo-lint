@@ -43,9 +43,11 @@ export function routeIsPrivate(
     '/admin',
     '/api',
     '/auth',
+    '/account',
     '/dashboard',
     '/login',
     '/private',
+    '/profile',
     '/quiz',
     '/register',
     '/settings',
@@ -53,10 +55,17 @@ export function routeIsPrivate(
     '/sign-up',
   ],
 ): boolean {
-  const normalized = filename.split(path.sep).join('/')
-  return privateRoutes.some(
-    (route) => normalized.includes(`/app${route}/`) || normalized.includes(`/src/app${route}/`),
-  )
+  const route = routeFromFilename(filename)
+    .split('/')
+    .filter((segment) => segment && !/^\[[^/]+\]$/.test(segment) && !/^\([^/]+\)$/.test(segment))
+    .join('/')
+  const normalizedRoute = `/${route}`.replace(/\/+/g, '/')
+  return privateRoutes.some((privateRoute) => {
+    const normalizedPrivateRoute = privateRoute.startsWith('/') ? privateRoute : `/${privateRoute}`
+    return (
+      normalizedRoute === normalizedPrivateRoute || normalizedRoute.startsWith(`${normalizedPrivateRoute}/`)
+    )
+  })
 }
 
 export function hasMetadataBase(root = findProjectRoot()): boolean {

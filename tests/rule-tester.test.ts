@@ -49,6 +49,14 @@ tester.run('no-missing-title', plugin.rules['no-missing-title'] as never, {
       filename: appFile('pricing/layout.tsx'),
     },
     {
+      code: "export const metadata = { description: 'short private dashboard description' }",
+      filename: appFile('[locale]/dashboard/page.tsx'),
+    },
+    {
+      code: "export const metadata = { description: 'short profile description' }",
+      filename: appFile('(user)/profile/page.tsx'),
+    },
+    {
       code: 'export async function generateMetadata() { return { title: product.title } }',
       filename: appFile('dynamic-title/page.tsx'),
     },
@@ -114,6 +122,14 @@ tester.run('no-missing-canonical', plugin.rules['no-missing-canonical'] as never
     {
       code: 'export const metadata = { robots: { index: false } }',
       filename: appFile('quiz/[id]/page.tsx'),
+    },
+    {
+      code: 'export default function Page() { return null }',
+      filename: appFile('[locale]/dashboard/page.tsx'),
+    },
+    {
+      code: 'export default function Page() { return null }',
+      filename: appFile('(user)/profile/page.tsx'),
     },
   ],
   invalid: [
@@ -316,6 +332,10 @@ tester.run('no-missing-hreflang', plugin.rules['no-missing-hreflang'] as never, 
       code: 'export const metadata = { alternates: { languages: { "en-US": "https://acme.com/en", "x-default": "https://acme.com" } } }',
       filename: appFile('locale/page.tsx'),
     },
+    {
+      code: 'export default function Dashboard() { return null }',
+      filename: appFile('[locale]/dashboard/page.tsx'),
+    },
   ],
   invalid: [],
 })
@@ -325,6 +345,14 @@ tester.run('no-generic-anchor-text', plugin.rules['no-generic-anchor-text'] as n
     {
       code: 'export default function Page() { return <Link href="/pricing">View pricing plans</Link> }',
       filename: appFile('links/page.tsx'),
+    },
+    {
+      code: 'export default function Page({ product }) { return <Link href={`/products/${product.id}`}>{product.name}</Link> }',
+      filename: appFile('links-dynamic/page.tsx'),
+    },
+    {
+      code: 'export default function Page({ t }) { return <Link href="/dashboard">{t("hero.cta.dashboard")}</Link> }',
+      filename: appFile('links-translated/page.tsx'),
     },
   ],
   invalid: [
