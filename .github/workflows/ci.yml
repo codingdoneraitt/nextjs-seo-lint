@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18.18.0, 20.x, 22.x]
+        node: [20.x, 22.x]
         eslint: [9.x]
         include:
           - node: 20.x
