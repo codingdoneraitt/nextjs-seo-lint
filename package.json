@@ -68,7 +68,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
     "@changesets/cli": "^2.31.0",
-    "@eslint/js": "^9.3.0",
+    "@eslint/js": "^10.0.1",
     "@types/eslint": "^8.56.10",
     "@types/node": "^20.12.12",
     "eslint": "^9.3.0",
