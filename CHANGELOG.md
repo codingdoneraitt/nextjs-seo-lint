@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+### Patch Changes
+
+- 914c840: Avoid false positives for links whose accessible text is provided by dynamic JSX expressions.
+
 ## 0.2.0
 
 ### Minor Changes
